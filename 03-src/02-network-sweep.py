@@ -4,7 +4,7 @@ from classes.network import Network
 
 if __name__ == "__main__":
     # load data
-    data_dir = Path("../01-data/02-processed")
+    data_dir = Path("../01-data/02-preprocessed")
     x_train, x_test, y_train, y_test = load_data(data_dir)
 
     depths = [2, 3, 4, 5, 6]
@@ -19,6 +19,3 @@ if __name__ == "__main__":
             mse_loss = net.mse_loss(x_test, y_test)
             results[depth][width] = mse_loss
     
-    
-
-

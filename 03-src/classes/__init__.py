@@ -1,3 +1,3 @@
-from ensemble import Enseble
+from .ensemble import Ensemble
 from .utils import load_data
-from network import Network
+from .network import Network
