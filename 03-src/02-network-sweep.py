@@ -18,4 +18,3 @@ if __name__ == "__main__":
             net.train(x_train, y_train, epochs=100)
             mse_loss = net.mse_loss(x_test, y_test)
             results[depth][width] = mse_loss
-    
