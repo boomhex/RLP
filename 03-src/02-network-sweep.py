@@ -11,11 +11,12 @@ def save(dic: Dict, fp: Path) -> None:
 if __name__ == "__main__":
     # load data
     data_dir = Path("../01-data/02-preprocessed")
-    x_train, x_test, y_train, y_test = load_data(data_dir)
     save_path = Path("../05-results/data")
 
-    depths = [4]
-    widths = [i for i in range(100, 1000)]
+    x_train, x_test, y_train, y_test = load_data(data_dir)
+
+    depths = [2, 3]
+    widths = [i for i in range(1, 2)]
 
     results = {}
     for depth in depths:
