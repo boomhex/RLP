@@ -7,7 +7,7 @@ import torch
 if __name__ == "__main__":
     # define paths
     data_base = Path("../01-data/")
-    raw_data = Path("01-raw/halfcheetah_medium-v2")
+    raw_data = Path("01-raw/halfcheetah_medium-v2.hdf5")
     destination = Path("02-preprocessed")
 
     data = h5py.File(data_base/raw_data)
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # info
     print(
         f"x_train shape = {x_train.shape}\n" \
-        f"x_test shape = {x_test.shape}\n" \
+        "x_test shape = {x_test.shape}\n" \
         f"y_train shape = {y_train.shape}\n" \
         f"y_test shape = {y_test.shape}"
     )

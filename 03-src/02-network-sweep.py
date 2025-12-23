@@ -14,8 +14,8 @@ if __name__ == "__main__":
     x_train, x_test, y_train, y_test = load_data(data_dir)
     save_path = Path("../05-results/data")
 
-    depths = [2, 3]
-    widths = [i for i in range(1, 2)]
+    depths = [4]
+    widths = [i for i in range(100, 1000)]
 
     results = {}
     for depth in depths:
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         for width in widths:
 
             net = Network(h_layers=depth, h_size=width)
-            net.train(x_train, y_train, epochs=100)
+            net.train(x_train, y_train, epochs=400)
             mse_loss = net.mse_loss(x_test, y_test)
             results[depth][width] = mse_loss.item()
 
