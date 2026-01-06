@@ -26,8 +26,9 @@ if __name__ == "__main__":
         for width in widths:
 
             net = Network(h_layers=depth, h_size=width)
-            net.train(x_train, y_train, epochs=400)
+            train_loss = net.train(x_train, y_train, epochs=400)[-1]
             mse_loss = net.mse_loss(x_test, y_test)
-            results[depth][width] = mse_loss.item()
+            results[depth][width]["test_loss"] = mse_loss.item()
+            results[depth][width]["train_loss"] = train_loss
 
             save(results, save_path/"results.json")
