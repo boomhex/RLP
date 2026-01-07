@@ -46,8 +46,8 @@ class Network(nn.Module):   # class defining a basic nn
         return nll.mean()
 
     def train_epoch(self, x, y):
-        self.optimizer.zero_grad()
 
+        self.optimizer.zero_grad()
         loss = self.nll_loss(x, y)
 
         loss.backward()
@@ -62,6 +62,7 @@ class Network(nn.Module):   # class defining a basic nn
     
         for iter in range(epochs):
             # train
+            print(iter)
             iteration_loss = self.train_epoch(x, y)
             losses.append(iteration_loss)
 

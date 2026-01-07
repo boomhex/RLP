@@ -15,8 +15,8 @@ if __name__ == "__main__":
 
     x_train, x_test, y_train, y_test = load_data(data_dir)
 
-    depths = [2, 3]
-    widths = [i for i in range(1, 2)]
+    depths = [2]
+    widths = [i for i in range(10, 11)]
 
     results = {}
     for depth in depths:
