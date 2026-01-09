@@ -7,6 +7,7 @@
 #SBATCH --gpus-per-node=v100:1
 
 module purge
-source $HOME/venvs/rlp_venv/bin/activate
+module load PyTorch/2.1.2-foss-2023a-CUDA-12.1.1
+# source $HOME/venvs/rlp_venv/bin/activate
 
 python3 ./02-network-sweep.py
