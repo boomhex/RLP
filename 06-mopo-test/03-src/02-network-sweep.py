@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
 
     depth = 4
-    widths = [i for i in range(10, 125, 1)]
-    epochs = 200
+    widths = [i for i in range(10, 150, 1)]
+    epochs = 400
     step = 1
 
     out_path = Path("results_epochs.csv")
