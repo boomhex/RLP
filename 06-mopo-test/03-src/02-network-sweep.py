@@ -4,8 +4,15 @@ import torch
 import numpy as np
 from classes.network_mean import Network
 import csv
+import argparse
 from tqdm import tqdm
 
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Train dynamics model")
+    p.add_argument("--datadir", type=Path, default=Path("../01-data"),
+                   help="Directory containing x_train.pt, y_train.pt, ...")
+    p.set_defaults(shuffle=True)
+    return p.parse_args()
 
 def savetofile(file, results):
     with open(file, 'w') as f:
@@ -37,8 +44,10 @@ def permute_y_fraction(y: torch.Tensor, frac: float, generator=None) -> torch.Te
 
 
 if __name__ == "__main__":
+    args = parse_args()
+
     # load data
-    data_dir = Path("../01-data")
+    data_dir = args.datadir
     x_train, x_test, y_train, y_test = load_data(data_dir)
 
     seed = 0
