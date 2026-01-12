@@ -59,7 +59,7 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
-    samples_train = 1000
+    samples_train = 10000
     test_frac = 0.25
     samples_test = int(samples_train * test_frac)
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     y_test = y_test[:samples_test]
 
     depth = 4
-    widths = [i for i in range(800, 1000, 10)]
+    widths = [i for i in range(50, 1000, 10)]
     epochs = 600
     step = 1
 
@@ -84,11 +84,11 @@ if __name__ == "__main__":
 
             net = Network(h_layers=depth, h_size=width)
             print(f"width:{width}, depth:{depth}")
-            for ep in tqdm(range(step, epochs, step)):
+            for ep in range(step, epochs, step):
 
                 train_losses = net.train_epoch(x_train, y_train)
 
-                loss_train = float(net.mse_loss_nograd(x_train, y_train))
+                loss_train = float(train_losses)
                 loss_test = float(net.mse_loss_nograd(x_test, y_test))
 
                 writer.writerow([depth, width, ep, loss_train, loss_test, train_losses])
