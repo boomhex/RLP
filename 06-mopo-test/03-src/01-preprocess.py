@@ -6,11 +6,11 @@ import torch
 
 if __name__ == "__main__":
     # define paths
-    data_base = Path("./")
+    data_base = Path("../01-data/")
     raw_data = Path("halfcheetah_medium-v2")
-    destination = Path("02-preprocessed")
+    destination = Path(".")
 
-    data = h5py.File(Path("halfcheetah_medium-v2.hdf5"))
+    data = h5py.File(Path("./../01-data/halfcheetah_medium-v2.hdf5"))
 
     # extract relevant cols
     actions = data["actions"]

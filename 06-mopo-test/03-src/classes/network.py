@@ -48,6 +48,18 @@ class Network(nn.Module):   # class defining a basic nn
         nll = 0.5 * ((y - mean)**2 / var + logvar)
         return nll.mean()
 
+    def nll_loss_zerograd(self, x, y):
+        """
+        Negative log-likelihood of Gaussian:
+            NLL = 0.5 * [ logσ² + (y - µ)² / σ² ]
+        """
+        with torch.no_grad():
+            mean, logvar = self.forward(x)
+            var = torch.exp(logvar)
+
+            nll = 0.5 * ((y - mean)**2 / var + logvar)
+            return nll.mean()
+
     def train_epoch(self, x, y):
         self.optimizer.zero_grad()
 
@@ -60,9 +72,9 @@ class Network(nn.Module):   # class defining a basic nn
     def train(self, x, y, epochs=500):
         # again split the data to optimize hyperparam on val set, to not leak data.
         # x_train, x_val, y_train, y_val = train_test_split(x, y, test_size=0.2, shuffle=True)
-    
+
         losses = []
-    
+
         for iter in tqdm(range(epochs)):
             # train
             iteration_loss = self.train_epoch(x, y)

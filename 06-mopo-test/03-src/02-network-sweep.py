@@ -2,7 +2,7 @@ from classes.utils import load_data
 from pathlib import Path
 import torch
 import numpy as np
-from classes.network import Network
+from classes.network_mean import Network
 import csv
 from tqdm import tqdm
 
@@ -33,7 +33,7 @@ def permute_y_fraction(y: torch.Tensor, frac: float, generator=None) -> torch.Te
     idx = torch.randperm(n, generator=generator, device=y.device)[:k]
     perm = torch.randperm(n, generator=generator, device=y.device)
     y_noisy[idx] = y_noisy[perm[idx]]
-    return y_noisy
+    return y
 
 
 if __name__ == "__main__":
@@ -59,30 +59,38 @@ if __name__ == "__main__":
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(seed)
 
+    samples_train = 1000
+    test_frac = 0.25
+    samples_test = int(samples_train * test_frac)
+
+    x_train = x_train[:samples_train]
+    y_train = y_train[:samples_train]
+
+    x_test = x_test[:samples_test]
+    y_test = y_test[:samples_test]
 
     depth = 4
-    widths = [i for i in range(10, 150, 1)]
-    epochs = 400
+    widths = [i for i in range(800, 1000, 10)]
+    epochs = 600
     step = 1
 
-    out_path = Path("results_epochs.csv")
+    out_path = Path("./results_epochs.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     with out_path.open("w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["depth", "width", "epoch", "loss_train", "loss_test"])
+        writer.writerow(["depth", "width", "epoch", "loss_train", "loss_test", "net_loss"])
         for width in widths:
+
             net = Network(h_layers=depth, h_size=width)
             print(f"width:{width}, depth:{depth}")
-            for ep in tqdm(range(step,epochs, step)):
-                
-                # train_losses = net.train(..., return_history=True)
-                # If your train returns nothing, you must log manually (see below)
-                train_losses = net.train_epoch(x_train, y_train)
-                
-                # If train() returns a list with one entry per epoch:
-                loss_train = float(net.mse_loss(x_train, y_train))
-                loss_test = float(net.mse_loss(x_test, y_test))
-                writer.writerow([depth, width, ep, loss_train, loss_test])
+            for ep in tqdm(range(step, epochs, step)):
 
-    print(f"Saved: {out_path}")
+                train_losses = net.train_epoch(x_train, y_train)
+
+                loss_train = float(net.mse_loss_nograd(x_train, y_train))
+                loss_test = float(net.mse_loss_nograd(x_test, y_test))
+
+                writer.writerow([depth, width, ep, loss_train, loss_test, train_losses])
+
+    print(f"Saved: {out_path.absolute()}")
