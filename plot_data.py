@@ -63,11 +63,11 @@ for outer_key in sorted(data.keys()):
 
     # smoothed line
     plt.plot(xs, ys_rm, marker="o", linewidth=1, markersize=3,
-             label=f"key={outer_key} (rolling mean {WINDOW})")
+             label=f"depth={outer_key})")
 
-plt.xlabel("Inner key")
-plt.ylabel("Value")
-plt.title(f"Values with rolling mean window={WINDOW}")
+plt.xlabel("Width")
+plt.ylabel("MSE")
+plt.title(f"error curves")
 plt.legend()
 plt.tight_layout()
 plt.show()

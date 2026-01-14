@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 class Network(nn.Module):   # class defining a basic nn
 
@@ -60,7 +61,7 @@ class Network(nn.Module):   # class defining a basic nn
     
         losses = []
     
-        for iter in range(epochs):
+        for iter in tqdm(range(epochs)):
             # train
             iteration_loss = self.train_epoch(x, y)
             losses.append(iteration_loss)
