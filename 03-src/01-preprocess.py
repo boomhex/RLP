@@ -7,10 +7,10 @@ import torch
 if __name__ == "__main__":
     # define paths
     data_base = Path("../01-data/")
-    raw_data = Path("01-raw/halfcheetah_medium-v2")
+    raw_data = Path("01-raw/halfcheetah_medium-v2.hdf5")
     destination = Path("02-preprocessed")
 
-    data = h5py.File(Path("./../01-data/01-raw/halfcheetah_medium-v2.hdf5"))
+    data = h5py.File(data_base/raw_data)
 
     # extract relevant cols
     actions = data["actions"]
@@ -35,8 +35,8 @@ if __name__ == "__main__":
     print(f"using device: {device}")
 
     # converting to tensors
-    x = torch.tensor(x, dtype=torch.float32).to(device)   
-    y = torch.tensor(y, dtype=torch.float32).to(device)
+    x = torch.tensor(x, dtype=torch.float32)
+    y = torch.tensor(y, dtype=torch.float32)
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=0.2, shuffle=True
     )
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # info
     print(
         f"x_train shape = {x_train.shape}\n" \
-        f"x_test shape = {x_test.shape}\n" \
+        "x_test shape = {x_test.shape}\n" \
         f"y_train shape = {y_train.shape}\n" \
         f"y_test shape = {y_test.shape}"
     )
