@@ -55,4 +55,3 @@ if __name__ == "__main__":
     torch.save(y_train, data_base/destination/"y_train.pt")
     torch.save(x_test, data_base/destination/"x_test.pt")
     torch.save(y_test, data_base/destination/"y_test.pt")
-
