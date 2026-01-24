@@ -11,11 +11,10 @@ def plot_validation_sweep_like_example(
     val_col: str = "loss_val",
     roll_win: int = 1,
     center: bool = True,
-    log_epoch_color: bool = True,
+    epoch_ticks: int = 7,          # how many epoch labels on the colorbar
     best_line: str = "min",
     save_path: str | None = None,
 ) -> None:
-    # Accept single path or list of paths
     if isinstance(csv_paths, (str, bytes, Path)):
         csv_paths = [csv_paths]
 
@@ -24,11 +23,10 @@ def plot_validation_sweep_like_example(
     if missing_files:
         raise FileNotFoundError(f"CSV not found: {missing_files}")
 
-    # Load + concatenate -> one "database" df
     dfs = []
     for p in paths:
         d = pd.read_csv(p)
-        d["__source__"] = str(p)  # optional: provenance
+        d["__source__"] = str(p)
         dfs.append(d)
     df = pd.concat(dfs, ignore_index=True)
 
@@ -43,7 +41,6 @@ def plot_validation_sweep_like_example(
     if df.empty:
         raise ValueError("No valid rows after numeric conversion / NaN drop.")
 
-    # Mean across duplicates (including across files) for each (epoch,width)
     heat = (
         df.pivot_table(
             index=epoch_col,
@@ -57,12 +54,10 @@ def plot_validation_sweep_like_example(
     if heat.empty:
         raise ValueError("Pivot table is empty; check width/epoch/value columns.")
 
-    # Keep only certain epochs (1, step, 2*step, ...)
     step = 50
     wanted = {1} | set(range(step, int(heat.index.max()) + 1, step))
     heat = heat.loc[heat.index.astype(int).isin(wanted)]
 
-    # Rolling mean over widths (avoid deprecated axis=1)
     roll_win = int(max(1, roll_win))
     if roll_win > 1:
         heat = (
@@ -76,32 +71,21 @@ def plot_validation_sweep_like_example(
 
     fig, ax = plt.subplots()
 
-    # Color mapping by epoch
-    if log_epoch_color:
-        ep_for_color = epochs.astype(float).copy()
-        if np.any(ep_for_color <= 0):
-            ep_for_color = ep_for_color - ep_for_color.min() + 1.0
-        color_values = np.log10(ep_for_color)
-        cbar_label = "Epochs (log)"
-    else:
-        color_values = epochs.astype(float)
-        cbar_label = "Epochs"
-
-    norm = plt.Normalize(color_values.min(), color_values.max())
+    # Color mapping: linear in epoch (no log)
+    epoch_values = epochs.astype(float)
+    norm = plt.Normalize(epoch_values.min(), epoch_values.max())
     cmap = plt.get_cmap("viridis")
 
-    # Plot one curve per epoch (faint), colored by epoch
-    for i, _ep in enumerate(epochs):
-        y = heat.iloc[i].to_numpy()
+    for row_index, _epoch in enumerate(epochs):
+        y = heat.iloc[row_index].to_numpy()
         ax.plot(
             widths,
             y,
             linewidth=1,
             alpha=0.25,
-            color=cmap(norm(color_values[i])),
+            color=cmap(norm(epoch_values[row_index])),
         )
 
-    # "Best" line across epochs at each width
     mat = heat.to_numpy()
     if best_line == "min":
         best = np.nanmin(mat, axis=0)
@@ -113,19 +97,17 @@ def plot_validation_sweep_like_example(
     else:
         raise ValueError("best_line must be 'min' or like 'q10', 'q25', ...")
 
-    ax.plot(
-        widths,
-        best,
-        linestyle="--",
-        linewidth=2,
-        color="red",
-        label=best_label,
-    )
+    ax.plot(widths, best, linestyle="--", linewidth=2, color="red", label=best_label)
 
-    # Proper colorbar attached to this axes
+    # Colorbar with a few correct epoch labels
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
-    fig.colorbar(sm, ax=ax, label=cbar_label)
+    cbar = fig.colorbar(sm, ax=ax, label="Epochs")
+
+    epoch_ticks = int(max(2, epoch_ticks))
+    tick_epochs = np.linspace(epochs.min(), epochs.max(), epoch_ticks).round().astype(int)
+    cbar.set_ticks(tick_epochs.astype(float))
+    cbar.set_ticklabels([str(e) for e in tick_epochs])
 
     ax.set_xlabel("Width")
     ax.set_ylabel("Validation Error")
@@ -139,8 +121,11 @@ def plot_validation_sweep_like_example(
 
 # Example:
 plot_validation_sweep_like_example(
-    ["good_results_big1.csv", "good_results_big2.csv", "good_results_big3.csv"],
+    ["good_results_10%noise1.csv",
+    "good_results_10%noise2.csv",
+    "good_results_10%noise3.csv"],
     val_col="loss_test",
-    roll_win=4,
+    roll_win=7,
+    epoch_ticks=7,
     save_path="line_heat.png",
 )

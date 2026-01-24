@@ -1,13 +1,17 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
+import numpy as np
 
 # ---------------- CONFIG ----------------
-CSV_PATHS = ["good_results_big1.csv", "good_results_big2.csv", "good_results_big3.csv"]      # <- put multiple files here
+CSV_PATHS = ["good_results_big1.csv", "good_results_big2.csv", "good_results_big3.csv"]
 TEST_COL = "loss_test"
 TRAIN_COL = "loss_train"
-ROLL_WIN = 2                            # 1 = no smoothing
-CENTER = True                           # centered rolling mean across widths
+ROLL_WIN = 4
+CENTER = True
+
+MAX_XTICKS = 12   # show only some widths
+MAX_YTICKS = 12   # show only some epochs
 # ---------------------------------------
 
 
@@ -19,6 +23,8 @@ def save_heatmaps_train_test_multi(
     center: bool = CENTER,
     out_test: str = "heatmap_test.png",
     out_train: str = "heatmap_train.png",
+    max_xticks: int = MAX_XTICKS,
+    max_yticks: int = MAX_YTICKS,
 ) -> None:
     if not csv_paths:
         raise ValueError("csv_paths is empty.")
@@ -28,11 +34,10 @@ def save_heatmaps_train_test_multi(
     if missing_files:
         raise FileNotFoundError(f"CSV not found: {missing_files}")
 
-    # Load + concatenate into one "database" DataFrame
     dfs = []
     for p in paths:
         df = pd.read_csv(p)
-        df["__source__"] = str(p)  # optional: keep provenance
+        df["__source__"] = str(p)
         dfs.append(df)
 
     df = pd.concat(dfs, ignore_index=True)
@@ -42,7 +47,6 @@ def save_heatmaps_train_test_multi(
     if missing:
         raise ValueError(f"CSV missing columns: {sorted(missing)}")
 
-    # Ensure numeric
     for col in ["epoch", "width", test_col, train_col]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
     df = df.dropna(subset=["epoch", "width", test_col, train_col])
@@ -52,8 +56,26 @@ def save_heatmaps_train_test_multi(
 
     roll_win = int(max(1, roll_win))
 
+    def _format_num(v: float) -> str:
+        return str(int(v)) if float(v).is_integer() else str(v)
+
+    def _pick_ticks(n: int, max_ticks: int) -> np.ndarray:
+        """
+        Return tick positions (indices) so that at most ~max_ticks are shown.
+        Always includes first and last.
+        """
+        if n <= 0:
+            return np.array([], dtype=int)
+        max_ticks = max(2, int(max_ticks))  # at least show endpoints
+        if n <= max_ticks:
+            return np.arange(n, dtype=int)
+        step = int(np.ceil((n - 1) / (max_ticks - 1)))
+        ticks = np.arange(0, n, step, dtype=int)
+        if ticks[-1] != n - 1:
+            ticks = np.append(ticks, n - 1)
+        return ticks
+
     def _plot_and_save(loss_col: str, out_path: str) -> None:
-        # Mean across duplicates (including across files) for each (epoch,width)
         heat = (
             df.pivot_table(
                 index="epoch",
@@ -66,11 +88,8 @@ def save_heatmaps_train_test_multi(
         )
 
         if heat.empty:
-            raise ValueError(
-                f"Heatmap table is empty for {loss_col} (check your data)."
-            )
+            raise ValueError(f"Heatmap table is empty for {loss_col} (check your data).")
 
-        # Rolling mean along widths (use transpose to avoid deprecated axis=1)
         if roll_win > 1:
             heat = (
                 heat.T.rolling(window=roll_win, center=center, min_periods=1)
@@ -86,20 +105,21 @@ def save_heatmaps_train_test_multi(
             interpolation="nearest",
         )
 
-        plt.colorbar(im, label=f"{loss_col} (width roll win={roll_win})")
+        plt.colorbar(im, label=f"{loss_col}")
         plt.xlabel("width")
         plt.ylabel("epoch")
+        plt.title(f"Heatmap: width vs epoch ({loss_col} HalfCheetah)")
 
-        plt.xticks(
-            range(len(heat.columns)),
-            [str(int(w)) if float(w).is_integer() else str(w) for w in heat.columns],
-            rotation=45,
-            ha="right",
-        )
-        plt.yticks(
-            range(len(heat.index)),
-            [str(int(e)) if float(e).is_integer() else str(e) for e in heat.index],
-        )
+        # ---- THIN TICKS HERE ----
+        x_vals = heat.columns.to_numpy()
+        y_vals = heat.index.to_numpy()
+
+        xt = _pick_ticks(len(x_vals), max_xticks)
+        yt = _pick_ticks(len(y_vals), max_yticks)
+
+        plt.xticks(xt, [_format_num(x_vals[i]) for i in xt], rotation=45, ha="right")
+        plt.yticks(yt, [_format_num(y_vals[i]) for i in yt])
+        # -------------------------
 
         plt.tight_layout()
         plt.savefig(out_path, dpi=300, bbox_inches="tight")
