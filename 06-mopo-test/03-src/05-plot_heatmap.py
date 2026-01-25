@@ -4,7 +4,7 @@ from pathlib import Path
 
 # ---------------- CONFIG ----------------
 CSV_PATH = "results_epochs.csv"
-LOSS_COL = "loss_train"     # or "loss_test"
+LOSS_COL = "loss_test"     # or "loss_test"
 ROLL_WIN = 1                # 1 = no smoothing, 3/5/7 = smoother
 CENTER = True               # centered rolling mean across widths
 # ---------------------------------------
